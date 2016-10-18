@@ -2,6 +2,8 @@
 #include <vector>
 #include <map>
 #include <cstdlib>
+#include <queue>
+
 using namespace std;
 
 // The solved 8 puzzle
@@ -89,44 +91,51 @@ vector<vector<int> > swap_places(vector<vector<int> > puzzle, map<int, pair<int,
 	return puzzle;
 }
 
+struct Node {
+	Node() : direction(""), index(0), distance(0){}
+	string direction;
+	int index;
+	int distance;
+};
+
+struct least_distance{
+	bool operator()(const Node& left, const Node& right) const{
+		return left.distance < right.distance;
+	}
+};
+
 void next_node(vector<vector<int> > puzzle, map<int, pair<int,int> > puzzle_map, map<int, pair<int,int> > directions, int b_spot){
 	pair<int,int> curr_directions = directions[b_spot];
 	int up=0, down=0, right=0, left=0;
 	int b_spot2 = b_spot;
+	int b_spot3 = b_spot;
+	int b_spot4 = b_spot;
+	int b_untouched = b_spot;
+	Node node_right;
+	Node node_left;
+	Node node_up;
+	Node node_down;
 	vector<vector<int> > new_puzzle;
 	vector<vector<int> > new_pizzle;
-	/*
-	for(int i = 0; i < 3; i++){
-		for(int j = 0; j < 3; j++)
-			cout << puzzle.at(i).at(j) << endl;
-	}
-	cout << "BIG" << b_spot << endl;
-	int b_spot2 = b_spot;
-	right = heur(new_puzzle=swap_places(puzzle, puzzle_map, b_spot, b_spot + 1), puzzle_map);
-	for(int i = 0; i < 3; i++){
-		for(int j = 0; j < 3; j++)
-			cout << new_puzzle.at(i).at(j) << endl;
-	}
-	cout << "BIG" << b_spot2 << endl;
-	left = heur(new_pizzle=swap_places(puzzle, puzzle_map, b_spot2, b_spot2 - 1), puzzle_map);
-	for(int i = 0; i < 3; i++){
-		for(int j = 0; j < 3; j++)
-			cout << new_pizzle.at(i).at(j) << endl;
-	}*/
+	priority_queue<Node, vector<Node>, least_distance> level;
 	switch(curr_directions.first){
 		case 1 : // right
-			right = heur(swap_places(puzzle, puzzle_map, b_spot, b_spot + 1), puzzle_map);
+			node_right.direction = "R";
+			node_right.distance = heur(swap_places(puzzle, puzzle_map, b_spot, b_spot + 1), puzzle_map);
 			break;
 		case 2 : // left
-			left = heur(swap_places(puzzle, puzzle_map, b_spot, b_spot - 1), puzzle_map);
+			node_left.direction = "L";
+			node_left.distance = heur(swap_places(puzzle, puzzle_map, b_spot2, b_spot2 - 1), puzzle_map);
 			break;
 		case 3 : // both
-			right = heur(new_puzzle=swap_places(puzzle, puzzle_map, b_spot, b_spot + 1), puzzle_map);
+			node_right.direction = "R";
+			node_right.distance = heur(new_puzzle=swap_places(puzzle, puzzle_map, b_spot, b_spot + 1), puzzle_map);
 			for(int i = 0; i < 3; i++){
 				for(int j = 0; j < 3; j++)
 					cout << new_puzzle.at(i).at(j) << endl;
 			}
-			left = heur(new_pizzle=swap_places(puzzle, puzzle_map, b_spot2, b_spot2 - 1), puzzle_map);
+			node_left.direction = "L";
+			node_left.distance = heur(new_pizzle=swap_places(puzzle, puzzle_map, b_spot2, b_spot2 - 1), puzzle_map);
 			for(int i = 0; i < 3; i++){
 				for(int j = 0; j < 3; j++)
 					cout << new_pizzle.at(i).at(j) << endl;
@@ -135,7 +144,36 @@ void next_node(vector<vector<int> > puzzle, map<int, pair<int,int> > puzzle_map,
 		default:
 			break;
 	}
-	//switch(curr_directions.second)	
+	switch(curr_directions.second){
+		case 1 : // up
+			node_up.direction = "U";
+			node_up.distance = heur(swap_places(puzzle, puzzle_map, b_spot3, b_spot3 - 3), puzzle_map);
+			break;
+		case 2 : // down
+			node_down.direction = "D";
+			node_down.distance = heur(swap_places(puzzle, puzzle_map, b_spot4, b_spot4 + 3), puzzle_map);
+			break;
+		case 3 : // both
+			node_up.direction = "U";
+			node_up.distance = heur(new_puzzle=swap_places(puzzle, puzzle_map, b_spot3, b_spot3 - 3), puzzle_map);
+			for(int i = 0; i < 3; i++){
+				for(int j = 0; j < 3; j++)
+					cout << new_puzzle.at(i).at(j) << endl;
+			}
+			node_down.direction = "D";
+			node_down.distance = heur(new_pizzle=swap_places(puzzle, puzzle_map, b_spot4, b_spot4 + 3), puzzle_map);
+			for(int i = 0; i < 3; i++){
+				for(int j = 0; j < 3; j++)
+					cout << new_pizzle.at(i).at(j) << endl;
+			}
+			break;
+		default:
+			break;
+
+	}
+	cout << "-----------------\n" << node_right.direction << endl << node_right.distance << endl;
+	cout << "-----------------\n" << node_left.direction << endl << node_left.distance << endl;
+	cout << "-----------------\n" << node_up.direction << endl << node_up.distance << endl;
 	return;
 }
 
