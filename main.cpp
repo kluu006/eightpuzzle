@@ -95,10 +95,12 @@ vector<vector<int> > swap_places(vector<vector<int> > puzzle, map<int, pair<int,
 }
 
 struct Node {
-	Node() : direction(""), index(0), distance(-1){}
+	Node() : direction(""), index(0), distance(-1), b_spot(0){}
 	string direction;
 	int index;
 	int distance;
+	int b_spot;
+	vector<vector<int> > puzzle;
 };
 
 struct least_distance{
@@ -232,6 +234,80 @@ vector<vector<int> > next_node(vector<vector<int> > puzzle, map<int, pair<int,in
 	return ultimate_puzzle;
 }
 
+void BFS(vector<vector<int> > puzzle, map<int, pair<int,int> > puzzle_map, map<int, pair<int,int> > directions, int b_spot, int level){
+	pair<int,int> curr_directions = directions[b_spot];
+	int up=0, down=0, right=0, left=0;
+	int b_spot1 = b_spot;
+	int b_spot2 = b_spot;
+	int b_spot3 = b_spot;
+	int b_spot4 = b_spot;
+	Node node_right; 
+	Node node_left;
+	Node node_up;
+	Node node_down;
+	node_right.index = level + 1;
+	node_left.index = level + 1;
+	node_up.index = level + 1;
+	node_down.index = level + 1;
+	vector<vector<int> > ultimate_puzzle;
+	priority_queue<Node, vector<Node>, least_distance> tree_copy;
+	switch(curr_directions.first){
+		case 1 : // right
+			node_right.direction = "R";
+			node_right.distance = heur(node_right.puzzle=swap_places(puzzle, puzzle_map, b_spot1, b_spot1 + 1), puzzle_map);
+			break;
+		case 2 : // left
+			node_left.direction = "L";
+			node_left.distance = heur(node_left.puzzle=swap_places(puzzle, puzzle_map, b_spot2, b_spot2 - 1), puzzle_map);
+			break;
+		case 3 : // both
+			node_right.direction = "R";
+			node_right.distance = heur(node_right.puzzle=swap_places(puzzle, puzzle_map, b_spot1, b_spot1 + 1), puzzle_map);
+			node_left.direction = "L";
+			node_left.distance = heur(node_left.puzzle=swap_places(puzzle, puzzle_map, b_spot2, b_spot2 - 1), puzzle_map);
+			break;
+		default:
+			break;
+	}
+	switch(curr_directions.second){
+		case 1 : // up
+			node_up.direction = "U";
+			node_up.distance = heur(node_up.puzzle=swap_places(puzzle, puzzle_map, b_spot3, b_spot3 - 3), puzzle_map);
+			break;
+		case 2 : // down
+			node_down.direction = "D";
+			node_down.distance = heur(node_down.puzzle=swap_places(puzzle, puzzle_map, b_spot4, b_spot4 + 3), puzzle_map);
+			break;
+		case 3 : // both
+			node_up.direction = "U";
+			node_up.distance = heur(node_up.puzzle=swap_places(puzzle, puzzle_map, b_spot3, b_spot3 - 3), puzzle_map);
+
+			node_down.direction = "D";
+			node_down.distance = heur(node_down.puzzle=swap_places(puzzle, puzzle_map, b_spot4, b_spot4 + 3), puzzle_map);
+			break;
+		default:
+			break;
+
+	}
+	node_right.b_spot = b_spot1;
+	node_left.b_spot = b_spot2;
+	node_up.b_spot = b_spot3;
+	node_down.b_spot = b_spot4;
+	if(node_right.distance != -1)
+		real_tree.push_back(node_right);
+	if(node_left.distance != -1)
+		real_tree.push_back(node_left);
+	if(node_up.distance != -1)
+		real_tree.push_back(node_up);
+	if(node_down.distance != -1)
+		real_tree.push_back(node_down);
+	//cout << "-----------------\n" << node_right.direction << endl << node_right.distance << endl;
+	//cout << "-----------------\n" << node_left.direction << endl << node_left.distance << endl;
+	//cout << "-----------------\n" << node_up.direction << endl << node_up.distance << endl;
+	//cout << tree.top().direction << endl << tree.top().distance << endl;
+
+}
+
 int main(){
 	vector<vector<int> > puzzle;
 	puzzle.resize(3, vector<int>(0,0));
@@ -239,11 +315,11 @@ int main(){
 	puzzle.at(0).push_back(2);
 	puzzle.at(0).push_back(3);
 	puzzle.at(1).push_back(4);
-	puzzle.at(1).push_back(8);
+	puzzle.at(1).push_back(5);
 	puzzle.at(1).push_back(0);
 	puzzle.at(2).push_back(7);
+	puzzle.at(2).push_back(8);
 	puzzle.at(2).push_back(6);
-	puzzle.at(2).push_back(5);
 
 	int level = 1;
 
@@ -271,6 +347,7 @@ int main(){
 	//cout << "-------------------" << endl;
 	//cout << value << endl;
 	
+	/*
 	while(value != 0){
 	//for(int k = 0; k < 5; k++){
 		puzzle = next_node(puzzle, puzzle_map, directions, b_spot, level);
@@ -281,6 +358,41 @@ int main(){
 		}
 		level += 1;
 		cout << "FINAL: " << value << endl;
+	}*/
+	Node root;
+	root.puzzle = puzzle;
+	root.b_spot = b_spot;
+	root.index = 0;
+	real_tree.push_back(root);
+	while(value != 0){
+		for(int i = 0; i < real_tree.size(); i++){
+			string dir = real_tree.at(i).direction;
+			cout << "wowowo" << endl;
+			printf("(Direction:%s, Distance: %d, Depth: %d)\n", dir.c_str(), real_tree.at(i).distance, real_tree.at(i).index);
+		}
+		BFS(real_tree.at(0).puzzle, puzzle_map, directions, real_tree.at(0).b_spot, real_tree.at(0).index);
+		cout << "\n\n\n";
+		real_tree.erase(real_tree.begin());
+		for(int i = 0; i < real_tree.size(); i++){
+			string dir = real_tree.at(i).direction;
+			cout << "wowowo" << endl;
+			printf("(Direction:%s, Distance: %d, Depth: %d)\n", dir.c_str(), real_tree.at(i).distance, real_tree.at(i).index);
+		}
+		value = heur(real_tree.at(0).puzzle, puzzle_map);
+		cout << "FINAL: " << value << endl;
+		cout << "LEVEL: " << level << endl;
+		cout << endl;
+
 	}
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
