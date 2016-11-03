@@ -140,10 +140,13 @@ struct least_distance{
 };
 
 priority_queue<Node, vector<Node>, least_distance> tree;
+queue<Node> bfs_tree;
 vector<Node> real_tree;
 vector<Node> popped;
 int go_back = 0;
 int total_nodes = 1;
+map<int,vector<Node> > curr_popped;
+int counter = 0;
 
 vector<vector<int> > next_node(vector<vector<int> > puzzle, map<int, pair<int,int> > puzzle_map, map<int, pair<int,int> > directions, int& b_spot, int& level){
 	pair<int,int> curr_directions = directions[b_spot];
@@ -238,13 +241,25 @@ vector<vector<int> > next_node(vector<vector<int> > puzzle, map<int, pair<int,in
 	bool one = true;
 	int k = 0;
 	if(tree.empty()){
-		cout << "back at level " << level << endl;
-		if(go_back == 0){
-			ultimate_puzzle = popped.at(0).puzzle;
-			b_spot = popped.at(0).b_spot;
-			go_back = popped.size();
-			level = 0;
-		}
+		cout << "back at level " << go_back << endl;
+		//if(go_back == 0){
+			//ultimate_puzzle = popped.at(0).puzzle;
+			//b_spot = popped.at(0).b_spot;
+			//go_back = popped.size();
+			//level = 0;
+			ultimate_puzzle = popped.at(go_back).puzzle;
+			b_spot = initial_b_spot(ultimate_puzzle);
+			bool go_more = false;
+			cout << "go_back: " << go_back << endl;
+			cout << "level: " << level << endl;
+			if(go_back+1==level)
+				go_more = true;
+			level = go_back;
+			//popped = curr_popped[level];
+			if(go_more)
+				go_back++;
+		//}
+		/*
 		else if(level == popped.size()){
 			ultimate_puzzle = popped.at(0).puzzle;
 			b_spot = popped.at(0).b_spot;
@@ -255,7 +270,7 @@ vector<vector<int> > next_node(vector<vector<int> > puzzle, map<int, pair<int,in
 			ultimate_puzzle = popped.at(level).puzzle;
 			b_spot = initial_b_spot(ultimate_puzzle);
 			//go_back = level;
-		}
+		}*/
 	}
 	
 	while(!tree.empty()){
@@ -263,8 +278,10 @@ vector<vector<int> > next_node(vector<vector<int> > puzzle, map<int, pair<int,in
 		printf("(Direction:%s, Distance: %d, Depth: %d)\n", dir.c_str(), tree.top().distance, tree.top().index);
 		if(k)
 			real_tree.push_back(tree.top());
-		else
+		else{
 			popped.push_back(tree.top());
+			//curr_popped.insert(pair<int,vector<Node> >(level,popped));
+		}
 		tree.pop();
 		total_nodes++;
 		k++;
@@ -339,6 +356,54 @@ void BFS(vector<vector<int> > puzzle, map<int, pair<int,int> > puzzle_map, map<i
 	node_left.b_spot = b_spot2;
 	node_up.b_spot = b_spot3;
 	node_down.b_spot = b_spot4;
+	bool went_right = false;
+	bool went_left = false;
+	bool went_up = false;
+	bool went_down = false;
+	for(int i = 0; i < popped.size(); i++){
+		if(popped.at(i).puzzle == node_right.puzzle && popped.at(i).direction == node_right.direction)
+			went_right = true;
+		else if(node_right.distance != -1 && i == popped.size()-1 && !went_right){
+			total_nodes++;
+			bfs_tree.push(node_right);
+		}
+		if(popped.at(i).puzzle == node_left.puzzle && popped.at(i).direction == node_left.direction)
+			went_left = true;
+		else if(node_left.distance != -1 && i == popped.size()-1 && !went_left){
+			total_nodes++;
+			bfs_tree.push(node_left);
+		}
+		if(popped.at(i).puzzle == node_up.puzzle && popped.at(i).direction == node_up.direction)
+			went_up = true;
+		else if(node_up.distance != -1 && i == popped.size()-1 && !went_up){
+			total_nodes++;
+			bfs_tree.push(node_up);
+		}
+		if(popped.at(i).puzzle == node_down.puzzle && popped.at(i).direction == node_down.direction)
+			went_down = true;
+		else if(node_down.distance != -1 && i == popped.size()-1 && !went_down){
+			total_nodes++;
+			bfs_tree.push(node_down);
+		}
+	}
+	bool one = true;
+	int k = 0;
+	
+	while(!bfs_tree.empty()){
+		string dir = bfs_tree.front().direction;
+		//printf("(Direction:%s, Distance: %d, Depth: %d)\n", dir.c_str(), tree.top().distance, tree.top().index);
+		if(k)
+			real_tree.push_back(bfs_tree.front());
+		else{
+			real_tree.push_back(bfs_tree.front());
+			popped.push_back(bfs_tree.front());
+		}
+		bfs_tree.pop();
+		//total_nodes++;
+		k++;
+	}
+
+	/*
 	if(node_right.distance != -1){
 		real_tree.push_back(node_right);
 		total_nodes++;
@@ -354,7 +419,7 @@ void BFS(vector<vector<int> > puzzle, map<int, pair<int,int> > puzzle_map, map<i
 	if(node_down.distance != -1){
 		real_tree.push_back(node_down);
 		total_nodes++;
-	}
+	}*/
 	//cout << "-----------------\n" << node_right.direction << endl << node_right.distance << endl;
 	//cout << "-----------------\n" << node_left.direction << endl << node_left.distance << endl;
 	//cout << "-----------------\n" << node_up.direction << endl << node_up.distance << endl;
@@ -453,13 +518,23 @@ vector<vector<int> > a_star_misplaced(vector<vector<int> > puzzle, map<int, pair
 	bool one = true;
 	int k = 0;
 	if(tree.empty()){
-		cout << "back at level " << level << endl;
-		if(go_back == 0){
-			ultimate_puzzle = popped.at(0).puzzle;
-			b_spot = popped.at(0).b_spot;
-			go_back = popped.size();
-			level = 0;
-		}
+		cout << "back at level " << go_back << endl;
+		//if(go_back == 0){
+			ultimate_puzzle = popped.at(go_back).puzzle;
+			b_spot = initial_b_spot(ultimate_puzzle);
+			//level = go_back;
+			//go_back++;
+			bool go_more = false;
+			cout << "go_back: " << go_back << endl;
+			cout << "level: " << level << endl;
+			if(go_back+1==level)
+				go_more = true;
+			level = go_back;
+			//popped = curr_popped[level];
+			if(go_more)
+				go_back++;
+		//}
+		/*
 		else if(level == popped.size()){
 			ultimate_puzzle = popped.at(0).puzzle;
 			b_spot = popped.at(0).b_spot;
@@ -470,7 +545,7 @@ vector<vector<int> > a_star_misplaced(vector<vector<int> > puzzle, map<int, pair
 			ultimate_puzzle = popped.at(level).puzzle;
 			b_spot = initial_b_spot(ultimate_puzzle);
 			//go_back = level;
-		}
+		}*/
 	}
 	
 	while(!tree.empty()){
@@ -506,15 +581,15 @@ int main(){
 	cin >> puzzle_type;
 	switch(puzzle_type){
 		case 1:
+			puzzle.at(0).push_back(4);
+			puzzle.at(0).push_back(6);
 			puzzle.at(0).push_back(1);
-			puzzle.at(0).push_back(2);
-			puzzle.at(0).push_back(3);
-			puzzle.at(1).push_back(4);
-			puzzle.at(1).push_back(8);
-			puzzle.at(1).push_back(0);
-			puzzle.at(2).push_back(7);
-			puzzle.at(2).push_back(6);
-			puzzle.at(2).push_back(5);
+			puzzle.at(1).push_back(7);
+			puzzle.at(1).push_back(5);
+			puzzle.at(1).push_back(2);
+			puzzle.at(2).push_back(0);
+			puzzle.at(2).push_back(3);
+			puzzle.at(2).push_back(8);
 			break;
 		case 2:
 			cout << "Enter your puzzle, use a zero to represent the blank\n";
@@ -576,10 +651,12 @@ int main(){
 				cout << "DISTANCE: " << value << endl;
 				cout << "LEVEL: " << level << endl;
 				cout << "POPPED_SZ: " << popped.size() << endl;
+				counter++;
 			}
 			cout << "\nTOTAL NODES: " << total_nodes << endl;
 			cout << "MAX NODES IN QUEUE: " << max << endl;
 			cout << "LEVEL: " << level << endl;
+			cout << "COUNTER: " << counter << endl;
 			break;
 		case 2:
 			while(value != 0){
@@ -616,6 +693,7 @@ int main(){
 			break;
 		case 3:
 			while(value != 0){
+			//for(int i = 0; i < 50 ; i++){
 				puzzle = a_star_misplaced(puzzle, puzzle_map, directions, b_spot, level);
 				value = misplaced_tiles(puzzle);
 				draw_puzzle(puzzle);
