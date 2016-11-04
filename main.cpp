@@ -12,15 +12,15 @@ using namespace std;
 // The solved 8 puzzle
 map<int, pair<int,int> > end_puzzle(void){
 	map<int, pair<int,int> > puzzle_map;
-	puzzle_map[0] = make_pair(0,0);
-	puzzle_map[1] = make_pair(0,1);
-	puzzle_map[2] = make_pair(0,2);
-	puzzle_map[3] = make_pair(1,0);
-	puzzle_map[4] = make_pair(1,1);
-	puzzle_map[5] = make_pair(1,2);
-	puzzle_map[6] = make_pair(2,0);
-	puzzle_map[7] = make_pair(2,1);
-	puzzle_map[8] = make_pair(2,2);
+	puzzle_map[0] = make_pair(0,0); //top left
+	puzzle_map[1] = make_pair(0,1); //top middle
+	puzzle_map[2] = make_pair(0,2); //top right
+	puzzle_map[3] = make_pair(1,0); //middle left
+	puzzle_map[4] = make_pair(1,1); //middle middle
+	puzzle_map[5] = make_pair(1,2); //middle right
+	puzzle_map[6] = make_pair(2,0); //bottom left
+	puzzle_map[7] = make_pair(2,1); //bottom middle
+	puzzle_map[8] = make_pair(2,2); //bottom right
 	return puzzle_map;
 }
 
@@ -46,7 +46,6 @@ map<int, pair<int,int> > avail_directions(void){
 
 // Initial b spot
 // User input of 0
-
 int initial_b_spot(vector<vector<int> > puzzle){
 	for(int i = 0; i < 3; i++){
 		for(int j = 0; j < 3; j++){
@@ -57,8 +56,7 @@ int initial_b_spot(vector<vector<int> > puzzle){
 	return 8;
 }
 
-// Returns the heuristic value according to the current puzzle
-
+// Returns the Manhattan distance heuristic value according to the current puzzle
 int heur(vector<vector<int> > puzzle, map<int, pair <int,int> > puzzle_map){
 	int value = 0;
 	for(int i = 0; i < 3; i++){
@@ -78,6 +76,7 @@ int heur(vector<vector<int> > puzzle, map<int, pair <int,int> > puzzle_map){
 	return value;
 }
 
+// Returns the misplaced tiles heuristic value according to the current puzzle
 int misplaced_tiles(vector<vector<int> > puzzle){
 	int value = 0;
 	for(int i = 0; i < 3; i++){
@@ -91,7 +90,6 @@ int misplaced_tiles(vector<vector<int> > puzzle){
 				if(!not_tile)
 					value++;
 			}
-				
 		}
 	}
 	return value;
@@ -130,6 +128,7 @@ struct Node {
 	vector<vector<int> > puzzle;
 };
 
+// The comparator for the priority queue
 struct least_distance{
 	bool operator()(const Node& left, const Node& right) const{
 		if(left.index == right.index)
@@ -139,6 +138,7 @@ struct least_distance{
 	}
 };
 
+// Global Variables used across all functions
 priority_queue<Node, vector<Node>, least_distance> tree;
 queue<Node> bfs_tree;
 vector<Node> real_tree;
@@ -146,9 +146,9 @@ vector<Node> popped;
 int go_back = 0;
 int total_nodes = 1;
 map<int,vector<Node> > curr_popped;
-int counter = 0;
 
-vector<vector<int> > next_node(vector<vector<int> > puzzle, map<int, pair<int,int> > puzzle_map, map<int, pair<int,int> > directions, int& b_spot, int& level){
+//Returns the puzzle using the Manhattan distance heuristic
+vector<vector<int> > manhattan_distance(vector<vector<int> > puzzle, map<int, pair<int,int> > puzzle_map, map<int, pair<int,int> > directions, int& b_spot, int& level){
 	pair<int,int> curr_directions = directions[b_spot];
 	int up=0, down=0, right=0, left=0;
 	int b_spot1 = b_spot;
@@ -163,10 +163,7 @@ vector<vector<int> > next_node(vector<vector<int> > puzzle, map<int, pair<int,in
 	node_left.index = level;
 	node_up.index = level;
 	node_down.index = level;
-	vector<vector<int> > new_puzzle;
-	vector<vector<int> > new_pizzle;
 	vector<vector<int> > ultimate_puzzle;
-	priority_queue<Node, vector<Node>, least_distance> tree_copy;
 	switch(curr_directions.first){
 		case 1 : // right
 			node_right.direction = "R";
@@ -210,21 +207,21 @@ vector<vector<int> > next_node(vector<vector<int> > puzzle, map<int, pair<int,in
 	bool went_up = false;
 	bool went_down = false;
 	for(int i = 0; i < popped.size(); i++){
-		if(popped.at(i).puzzle == node_right.puzzle && popped.at(i).direction == node_right.direction)
+		if(popped.at(i).puzzle == node_right.puzzle) 
 			went_right = true;
-		else if(node_right.distance != -1 && i == popped.size()-1 && !went_right)
+		else if(i == popped.size()-1 && !went_right && node_right.distance != -1)
 			tree.push(node_right);
-		if(popped.at(i).puzzle == node_left.puzzle && popped.at(i).direction == node_left.direction)
+		if(popped.at(i).puzzle == node_left.puzzle) 
 			went_left = true;
-		else if(node_left.distance != -1 && i == popped.size()-1 && !went_left)
+		else if(i == popped.size()-1 && !went_left && node_left.distance != -1)
 			tree.push(node_left);
-		if(popped.at(i).puzzle == node_up.puzzle && popped.at(i).direction == node_up.direction)
+		if(popped.at(i).puzzle == node_up.puzzle) 
 			went_up = true;
-		else if(node_up.distance != -1 && i == popped.size()-1 && !went_up)
+		else if(i == popped.size()-1 && !went_up && node_up.distance != -1)
 			tree.push(node_up);
-		if(popped.at(i).puzzle == node_down.puzzle && popped.at(i).direction == node_down.direction)
+		if(popped.at(i).puzzle == node_down.puzzle) 
 			went_down = true;
-		else if(node_down.distance != -1 && i == popped.size()-1 && !went_down)
+		else if(i == popped.size()-1 && !went_down && node_down.distance != -1)
 			tree.push(node_down);
 	}
 	if(tree.top().direction == "R")
@@ -236,67 +233,38 @@ vector<vector<int> > next_node(vector<vector<int> > puzzle, map<int, pair<int,in
 	else if(tree.top().direction == "D")
 		ultimate_puzzle = swap_places(puzzle, puzzle_map, b_spot, b_spot + 3);
 		
-	tree_copy = tree;
 	
 	bool one = true;
 	int k = 0;
 	if(tree.empty()){
 		cout << "back at level " << go_back << endl;
-		//if(go_back == 0){
-			//ultimate_puzzle = popped.at(0).puzzle;
-			//b_spot = popped.at(0).b_spot;
-			//go_back = popped.size();
-			//level = 0;
-			ultimate_puzzle = popped.at(go_back).puzzle;
-			b_spot = initial_b_spot(ultimate_puzzle);
-			bool go_more = false;
-			cout << "go_back: " << go_back << endl;
-			cout << "level: " << level << endl;
-			if(go_back+1==level)
-				go_more = true;
-			level = go_back;
-			//popped = curr_popped[level];
-			if(go_more)
-				go_back++;
-		//}
-		/*
-		else if(level == popped.size()){
-			ultimate_puzzle = popped.at(0).puzzle;
-			b_spot = popped.at(0).b_spot;
-			go_back = popped.size();
-			level = 0;
-		}
-		else if(go_back > level){
-			ultimate_puzzle = popped.at(level).puzzle;
-			b_spot = initial_b_spot(ultimate_puzzle);
-			//go_back = level;
-		}*/
+		ultimate_puzzle = popped.at(go_back).puzzle;
+		b_spot = initial_b_spot(ultimate_puzzle);
+		bool go_more = false;
+		if(go_back+1==level)
+			go_more = true;
+		level = go_back;
+		if(go_more)
+			go_back++;
 	}
 	
 	while(!tree.empty()){
 		string dir = tree.top().direction;
-		printf("(Direction:%s, Distance: %d, Depth: %d)\n", dir.c_str(), tree.top().distance, tree.top().index);
+		//printf("(Direction:%s, Distance: %d, Depth: %d)\n", dir.c_str(), tree.top().distance, tree.top().index);
 		if(k)
 			real_tree.push_back(tree.top());
 		else{
 			popped.push_back(tree.top());
-			//curr_popped.insert(pair<int,vector<Node> >(level,popped));
 		}
 		tree.pop();
 		total_nodes++;
 		k++;
 	}
-	/*
-	reverse(real_tree.begin(), real_tree.end());
-	for(int i = 0; i < real_tree.size(); i++){
-		string dir = real_tree.at(i).direction;
-		cout << "wowowo" << endl;
-		printf("(Direction:%s, Distance: %d, Depth: %d)\n", dir.c_str(), real_tree.at(i).distance, real_tree.at(i).index);
-	}*/
-	
 	return ultimate_puzzle;
 }
 
+//Is a uniform cost search
+//Basically a BFS
 void BFS(vector<vector<int> > puzzle, map<int, pair<int,int> > puzzle_map, map<int, pair<int,int> > directions, int b_spot, int level){
 	pair<int,int> curr_directions = directions[b_spot];
 	int up=0, down=0, right=0, left=0;
@@ -313,7 +281,6 @@ void BFS(vector<vector<int> > puzzle, map<int, pair<int,int> > puzzle_map, map<i
 	node_up.index = level + 1;
 	node_down.index = level + 1;
 	vector<vector<int> > ultimate_puzzle;
-	priority_queue<Node, vector<Node>, least_distance> tree_copy;
 	switch(curr_directions.first){
 		case 1 : // right
 			node_right.direction = "R";
@@ -361,30 +328,22 @@ void BFS(vector<vector<int> > puzzle, map<int, pair<int,int> > puzzle_map, map<i
 	bool went_up = false;
 	bool went_down = false;
 	for(int i = 0; i < popped.size(); i++){
-		if(popped.at(i).puzzle == node_right.puzzle && popped.at(i).direction == node_right.direction)
+		if(popped.at(i).puzzle == node_right.puzzle)
 			went_right = true;
-		else if(node_right.distance != -1 && i == popped.size()-1 && !went_right){
-			total_nodes++;
+		else if(i == popped.size()-1 && !went_right && node_right.distance != -1)
 			bfs_tree.push(node_right);
-		}
-		if(popped.at(i).puzzle == node_left.puzzle && popped.at(i).direction == node_left.direction)
+		if(popped.at(i).puzzle == node_left.puzzle) 
 			went_left = true;
-		else if(node_left.distance != -1 && i == popped.size()-1 && !went_left){
-			total_nodes++;
+		else if(i == popped.size()-1 && !went_left && node_left.distance != -1)
 			bfs_tree.push(node_left);
-		}
-		if(popped.at(i).puzzle == node_up.puzzle && popped.at(i).direction == node_up.direction)
+		if(popped.at(i).puzzle == node_up.puzzle) 
 			went_up = true;
-		else if(node_up.distance != -1 && i == popped.size()-1 && !went_up){
-			total_nodes++;
+		else if(i == popped.size()-1 && !went_up && node_up.distance != -1)
 			bfs_tree.push(node_up);
-		}
-		if(popped.at(i).puzzle == node_down.puzzle && popped.at(i).direction == node_down.direction)
+		if(popped.at(i).puzzle == node_down.puzzle) 
 			went_down = true;
-		else if(node_down.distance != -1 && i == popped.size()-1 && !went_down){
-			total_nodes++;
+		else if(i == popped.size()-1 && !went_down && node_down.distance != -1)
 			bfs_tree.push(node_down);
-		}
 	}
 	bool one = true;
 	int k = 0;
@@ -399,34 +358,12 @@ void BFS(vector<vector<int> > puzzle, map<int, pair<int,int> > puzzle_map, map<i
 			popped.push_back(bfs_tree.front());
 		}
 		bfs_tree.pop();
-		//total_nodes++;
+		total_nodes++;
 		k++;
 	}
-
-	/*
-	if(node_right.distance != -1){
-		real_tree.push_back(node_right);
-		total_nodes++;
-	}
-	if(node_left.distance != -1){
-		real_tree.push_back(node_left);
-		total_nodes++;
-	}
-	if(node_up.distance != -1){
-		real_tree.push_back(node_up);
-		total_nodes++;
-	}
-	if(node_down.distance != -1){
-		real_tree.push_back(node_down);
-		total_nodes++;
-	}*/
-	//cout << "-----------------\n" << node_right.direction << endl << node_right.distance << endl;
-	//cout << "-----------------\n" << node_left.direction << endl << node_left.distance << endl;
-	//cout << "-----------------\n" << node_up.direction << endl << node_up.distance << endl;
-	//cout << tree.top().direction << endl << tree.top().distance << endl;
-
 }
 
+//Returns the puzzle using the misplaced tiles heuristic
 vector<vector<int> > a_star_misplaced(vector<vector<int> > puzzle, map<int, pair<int,int> > puzzle_map, map<int, pair<int,int> > directions, int& b_spot, int& level){
 	pair<int,int> curr_directions = directions[b_spot];
 	int up=0, down=0, right=0, left=0;
@@ -443,7 +380,6 @@ vector<vector<int> > a_star_misplaced(vector<vector<int> > puzzle, map<int, pair
 	node_up.index = level;
 	node_down.index = level;
 	vector<vector<int> > ultimate_puzzle;
-	priority_queue<Node, vector<Node>, least_distance> tree_copy;
 	switch(curr_directions.first){
 		case 1 : // right
 			node_right.direction = "R";
@@ -487,21 +423,21 @@ vector<vector<int> > a_star_misplaced(vector<vector<int> > puzzle, map<int, pair
 	bool went_up = false;
 	bool went_down = false;
 	for(int i = 0; i < popped.size(); i++){
-		if(popped.at(i).puzzle == node_right.puzzle && popped.at(i).direction == node_right.direction)
+		if(popped.at(i).puzzle == node_right.puzzle) 
 			went_right = true;
-		else if(node_right.distance != -1 && i == popped.size()-1 && !went_right)
+		else if(i == popped.size()-1 && !went_right && node_right.distance != -1)
 			tree.push(node_right);
-		if(popped.at(i).puzzle == node_left.puzzle && popped.at(i).direction == node_left.direction)
+		if(popped.at(i).puzzle == node_left.puzzle) 
 			went_left = true;
-		else if(node_left.distance != -1 && i == popped.size()-1 && !went_left)
+		else if(i == popped.size()-1 && !went_left && node_left.distance != -1)
 			tree.push(node_left);
-		if(popped.at(i).puzzle == node_up.puzzle && popped.at(i).direction == node_up.direction)
+		if(popped.at(i).puzzle == node_up.puzzle) 
 			went_up = true;
-		else if(node_up.distance != -1 && i == popped.size()-1 && !went_up)
+		else if(i == popped.size()-1 && !went_up && node_up.distance != -1)
 			tree.push(node_up);
-		if(popped.at(i).puzzle == node_down.puzzle && popped.at(i).direction == node_down.direction)
+		if(popped.at(i).puzzle == node_down.puzzle) 
 			went_down = true;
-		else if(node_down.distance != -1 && i == popped.size()-1 && !went_down)
+		else if(i == popped.size()-1 && !went_down && node_down.distance != -1)
 			tree.push(node_down);
 	}
 	if(tree.top().direction == "R")
@@ -513,44 +449,23 @@ vector<vector<int> > a_star_misplaced(vector<vector<int> > puzzle, map<int, pair
 	else if(tree.top().direction == "D")
 		ultimate_puzzle = swap_places(puzzle, puzzle_map, b_spot, b_spot + 3);
 
-	tree_copy = tree;
-	
 	bool one = true;
 	int k = 0;
 	if(tree.empty()){
 		cout << "back at level " << go_back << endl;
-		//if(go_back == 0){
-			ultimate_puzzle = popped.at(go_back).puzzle;
-			b_spot = initial_b_spot(ultimate_puzzle);
-			//level = go_back;
-			//go_back++;
-			bool go_more = false;
-			cout << "go_back: " << go_back << endl;
-			cout << "level: " << level << endl;
-			if(go_back+1==level)
-				go_more = true;
-			level = go_back;
-			//popped = curr_popped[level];
-			if(go_more)
-				go_back++;
-		//}
-		/*
-		else if(level == popped.size()){
-			ultimate_puzzle = popped.at(0).puzzle;
-			b_spot = popped.at(0).b_spot;
-			go_back = popped.size();
-			level = 0;
-		}
-		else if(go_back > level){
-			ultimate_puzzle = popped.at(level).puzzle;
-			b_spot = initial_b_spot(ultimate_puzzle);
-			//go_back = level;
-		}*/
+		ultimate_puzzle = popped.at(go_back).puzzle;
+		b_spot = initial_b_spot(ultimate_puzzle);
+		bool go_more = false;
+		if(go_back+1==level)
+			go_more = true;
+		level = go_back;
+		if(go_more)
+			go_back++;
 	}
 	
 	while(!tree.empty()){
 		string dir = tree.top().direction;
-		printf("(Direction:%s, Distance: %d, Depth: %d)\n", dir.c_str(), tree.top().distance, tree.top().index);
+		//printf("(Direction:%s, Distance: %d, Depth: %d)\n", dir.c_str(), tree.top().distance, tree.top().index);
 		if(k)
 			real_tree.push_back(tree.top());
 		else
@@ -559,15 +474,6 @@ vector<vector<int> > a_star_misplaced(vector<vector<int> > puzzle, map<int, pair
 		total_nodes++;
 		k++;
 	}
-
-	/*
-	cout << "POPPED\n" << endl;
-	reverse(real_tree.begin(), real_tree.end());
-	for(int i = 0; i < real_tree.size(); i++){
-		string dir = real_tree.at(i).direction;
-		printf("(Direction:%s, Distance: %d, Depth: %d)\n", dir.c_str(), real_tree.at(i).distance, real_tree.at(i).index);
-	}*/
-	
 	return ultimate_puzzle;
 }
 
@@ -576,11 +482,12 @@ int main(){
 	vector<vector<int> > puzzle;
 	puzzle.resize(3, vector<int>(0,0));
 	int puzzle_type, algorithm, p1, p2, p3, p4, p5, p6, p7, p8, p9;
+	/*------------------------------INTRODUCTION-------------------------------*/
 	cout << "Type 1 for default puzzle\n";
 	cout << "Type 2 to enter your own puzzle\n";
 	cin >> puzzle_type;
 	switch(puzzle_type){
-		case 1:
+		case 1: //Default puzzle for testing
 			puzzle.at(0).push_back(4);
 			puzzle.at(0).push_back(6);
 			puzzle.at(0).push_back(1);
@@ -591,7 +498,7 @@ int main(){
 			puzzle.at(2).push_back(3);
 			puzzle.at(2).push_back(8);
 			break;
-		case 2:
+		case 2: //User input puzzle
 			cout << "Enter your puzzle, use a zero to represent the blank\n";
 			cout << "Enter the first row, use spaces or tabs between numbers \n";
 			cin >> p1 >> p2 >> p3;
@@ -618,110 +525,111 @@ int main(){
 	cout << "Enter what algorithm\n";
 	cout << "1. A* with the Manhattan distance heuristic\n";
 	cout << "2. Uniform Cost Search\n";
-	cout << "3. A* with the Misplaced Tile heuristic\n";
+	cout << "3. A* with the Misplaced tiles heuristic\n";
 	cin >> algorithm;
+	/*-------------------------------------------------------------------------*/
+
 
 	int level = 0;
 	int b_spot = initial_b_spot(puzzle);
+	//A map of the solved puzzle
+	//Goal State
 	map<int, pair<int,int> >puzzle_map = end_puzzle();
 	int value = heur(puzzle, puzzle_map);
-	int expanded = 0;
-
-	map<int, pair<int,int> > directions = avail_directions();
-	value = heur(puzzle, puzzle_map);
-	int max = 0;
 	
+	//A map of available directions for every position
+	map<int, pair<int,int> > directions = avail_directions();
+	int max = 0;
+	int expanded = 0;
+	
+	//INITIAL STATE
 	Node root;
 	root.puzzle = puzzle;
 	root.b_spot = b_spot;
 	root.index = 0;
 	popped.push_back(root);
+	//MAKE_QUEUE
 	real_tree.push_back(root);
+	cout << "\nExpanding\n\n";
 	draw_puzzle(puzzle);
+	cout << endl;
+	/*-------------------------------------------------------------------*/
+	//1. A* with the Manhattan distance heuristic
+	//2. Uniform Cost Search
+	//3. A* with the misplaced tiles heuristic
+	/*--------------------------ALGORITHM--------------------------------*/
 	switch(algorithm){
-		case 1:
+		case 1: //A* with the Manhattan Distance
+			cout << "\nMANHATTAN DISTANCE: " << value << endl;
+			cout << "DEPTH: " << level << endl;
 			while(value != 0){
-			//for(int k = 0; k < 10000; k++){
-				puzzle = next_node(puzzle, puzzle_map, directions, b_spot, level);
+				puzzle = manhattan_distance(puzzle, puzzle_map, directions, b_spot, level);
 				value = heur(puzzle, puzzle_map);
+				cout << "-----------------\n";
 				draw_puzzle(puzzle);
 				level += 1;
+				expanded += 1;
 				if(max < real_tree.size())
 					max = real_tree.size();
-				cout << "DISTANCE: " << value << endl;
-				cout << "LEVEL: " << level << endl;
-				cout << "POPPED_SZ: " << popped.size() << endl;
-				counter++;
+				cout << "\nMANHATTAN DISTANCE: " << value << endl;
+				cout << "DEPTH: " << level << endl;
+				//cout << "POPPED_SZ: " << popped.size() << endl;
 			}
+			cout << "-----------------\n";
 			cout << "\nTOTAL NODES: " << total_nodes << endl;
+			cout << "EXPANDED NODES: " << expanded << endl;
 			cout << "MAX NODES IN QUEUE: " << max << endl;
-			cout << "LEVEL: " << level << endl;
-			cout << "COUNTER: " << counter << endl;
+			cout << "DEPTH OF GOAL: " << level << endl;
 			break;
-		case 2:
+		case 2: //Uniform Cost Search
+			cout << "DEPTH: " << level << endl;
 			while(value != 0){
-				/*
-				for(int i = 0; i < real_tree.size(); i++){
-					string dir = real_tree.at(i).direction;
-					cout << "wowowo" << endl;
-					printf("(Direction:%s, Distance: %d, Depth: %d)\n", dir.c_str(), real_tree.at(i).distance, real_tree.at(i).index);
-				}*/
 				BFS(real_tree.at(0).puzzle, puzzle_map, directions, real_tree.at(0).b_spot, real_tree.at(0).index);
 				real_tree.erase(real_tree.begin());
-				expanded += 1;
+				cout << "-----------------\n";
 				draw_puzzle(real_tree.at(0).puzzle);
+				expanded += 1;
 				if(max < real_tree.size())
 					max = real_tree.size();
-				/*
-				cout << "\n\n\n";
-				real_tree.erase(real_tree.begin());
-				for(int i = 0; i < real_tree.size(); i++){
-					string dir = real_tree.at(i).direction;
-					cout << "wowowo" << endl;
-					printf("(Direction:%s, Distance: %d, Depth: %d)\n", dir.c_str(), real_tree.at(i).distance, real_tree.at(i).index);
-				}*/
 				value = heur(real_tree.at(0).puzzle, puzzle_map);
-				cout << "DISTANCE: " << value << endl;
-				cout << "LEVEL: " << real_tree.at(0).index << endl;
-				cout << "EXPANDED: " << expanded << endl;
-				cout << endl;
-
+				cout << "\nDEPTH: " << real_tree.at(0).index << endl;
 			}
+			cout << "-----------------\n";
 			cout << "\nTOTAL NODES: " << total_nodes << endl;
+			cout << "EXPANDED NODES: " << expanded << endl;
 			cout << "MAX NODES IN QUEUE: " << max << endl;
-			cout << "LEVEL: " << real_tree.at(0).index << endl;
+			cout << "DEPTH OF GOAL: " << real_tree.at(0).index << endl;
 			break;
-		case 3:
+		case 3: //A* with the Misplaced Tile heuristic
+			cout << "\nMISPLACED TILES: " << value << endl;
+			cout << "DEPTH: " << level << endl;
 			while(value != 0){
-			//for(int i = 0; i < 50 ; i++){
 				puzzle = a_star_misplaced(puzzle, puzzle_map, directions, b_spot, level);
 				value = misplaced_tiles(puzzle);
+				cout << "-----------------\n";
 				draw_puzzle(puzzle);
 				if(max < real_tree.size())
 					max = real_tree.size();
 				level += 1;
-				cout << "MISPLACED TILES: " << value << endl;
-				cout << "LEVEL: " << level << endl;
-				cout << "POPPED_SZ: " << popped.size() << endl;
+				expanded += 1;
+				cout << "\nMISPLACED TILES: " << value << endl;
+				cout << "DEPTH: " << level << endl;
 			}
+			cout << "-----------------\n";
 			cout << "\nTOTAL NODES: " << total_nodes << endl;
+			cout << "EXPANDED NODES: " << expanded << endl;
 			cout << "MAX NODES IN QUEUE: " << max << endl;
-			cout << "LEVEL: " << level << endl;
+			cout << "DEPTH OF GOAL: " << level << endl;
 			break;
-		default:
+		default: //Did not choose an algorithm
 			cout << "No algorithm\n";
 			return 0;
 			break;
 	}
+	/*-------------------------------------------------------------------*/
 
 	return 0;
 }
-
-
-
-
-
-
 
 
 
