@@ -237,7 +237,7 @@ vector<vector<int> > manhattan_distance(vector<vector<int> > puzzle, map<int, pa
 	bool one = true;
 	int k = 0;
 	if(tree.empty()){
-		cout << "back at level " << go_back << endl;
+		cout << "Back at level: " << go_back << endl;
 		ultimate_puzzle = popped.at(go_back).puzzle;
 		b_spot = initial_b_spot(ultimate_puzzle);
 		bool go_more = false;
@@ -452,7 +452,7 @@ vector<vector<int> > a_star_misplaced(vector<vector<int> > puzzle, map<int, pair
 	bool one = true;
 	int k = 0;
 	if(tree.empty()){
-		cout << "back at level " << go_back << endl;
+		cout << "Back at level: " << go_back << endl;
 		ultimate_puzzle = popped.at(go_back).puzzle;
 		b_spot = initial_b_spot(ultimate_puzzle);
 		bool go_more = false;
@@ -553,11 +553,14 @@ int main(){
 	cout << "\nExpanding\n\n";
 	draw_puzzle(puzzle);
 	cout << endl;
-	/*-------------------------------------------------------------------*/
+	/*-----------------------------------------------------------------------*/
 	//1. A* with the Manhattan distance heuristic
 	//2. Uniform Cost Search
 	//3. A* with the misplaced tiles heuristic
-	/*--------------------------ALGORITHM--------------------------------*/
+	// The variable "value" is the heuristic
+	// When value is 0, the goal state is reached
+	// Used value in uniform cost search too to check if goal state is reached
+	/*--------------------------ALGORITHM------------------------------------*/
 	switch(algorithm){
 		case 1: //A* with the Manhattan Distance
 			cout << "\nMANHATTAN DISTANCE: " << value << endl;
